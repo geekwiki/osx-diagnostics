@@ -1,3 +1,4 @@
+#!/bin/bash
 
 # Trim lines from string
 #
