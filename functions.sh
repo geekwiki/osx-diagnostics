@@ -251,17 +251,6 @@ function getdate {
   fi
 }
 
-function inarray {
-  local e
-
-  for e in "${@:2}"
-  do 
-    [[ "$e" == "$1" ]] && return 0
-  done
-
-  return 1
-}
-
 # date "+%m%d%H%M%Y.%S"
 
 function diaglog {
@@ -306,4 +295,74 @@ function diaglog {
   fi
 
   printf "%-10s | %-19s | %-7s | %s\n" "$(getdate epoch)" "$(getdate daytime24)" "${loglvl}" "${data}"  >> "${logto}"
+}
+
+function biggeststr {
+  if [ $# -eq 0 ]
+  then
+    data=$(cat)
+  else
+    data="$*"
+  fi
+
+  echo "${data}" | xargs -I {} bash -c "echo {} | wc -m" | sort -n | tail -n 1
+}
+
+function smalleststr {
+  if [ $# -eq 0 ]
+  then
+    data=$(cat)
+  else
+    data="$*"
+  fi
+
+  echo "${data}" | xargs -I {} bash -c "echo {} | wc -m" | sort -n | head -n 1
+}
+
+function inarray {
+  local e
+
+  for e in "${@:2}"
+  do 
+    [[ "$e" == "$1" ]] && return 0
+  done
+
+  return 1
+}
+
+function charlen {
+  echo -e '$#:\t'"$# "
+  echo -e '$*:\t'"$*"
+  echo -e '$@:\t'"$@"
+
+  args=("${@}")
+  nouns=("biggest" "smallest")
+  noun="${args[0]}"
+
+  if [[ -z "${noun}" ]]
+  then
+    noun="biggest"
+  elif [[ $(inarray "${noun}" "${nouns[@]}"; echo $?) -ne 0 ]]; then
+    noun="biggest"
+  #else
+  #  echo "Noun is '${noun}'"
+  fi
+
+  if [[ -t 0 ]]; then     
+    echo "No STDIN data"
+    return 1
+  fi
+
+  data_in="$(cat)"
+
+  data_wc=$(echo "${data_in} | xargs -I {} bash -c "echo {} | wc -m" | sort -n") 
+
+  if [[ $noun == 'biggest' ]]
+  then
+    echo "${data_wc}" | tail -n 1
+  elif [[ $noun == 'smallest' ]]
+  then
+    echo "${data_wc}" | head -n 1
+  fi
+
 }
